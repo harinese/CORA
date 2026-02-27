@@ -1,278 +1,887 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Diabetes Risk Predictor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Diabetes Risk Predictor — CORA</title>
+    <meta name="description"
+        content="AI-powered diabetes risk prediction tool using machine learning for clinical outcome analysis.">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
-<link rel="icon" href="/static/favicon-32x32.png" type="image/png">
-    
-<style>
-* { box-sizing: border-box; }
+    <link rel="icon" href="/static/favicon-32x32.png" type="image/png">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #eef2f7, #f8fafc);
-    color: #1f2937;
-}
+        :root {
+            --bg-primary: #0c0e14;
+            --bg-secondary: #13161f;
+            --bg-card: rgba(20, 23, 33, 0.75);
+            --bg-card-hover: rgba(25, 29, 42, 0.85);
+            --bg-input: rgba(255, 255, 255, 0.04);
+            --bg-input-focus: rgba(255, 255, 255, 0.07);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-focus: rgba(99, 140, 255, 0.4);
+            --text-primary: #e8ecf4;
+            --text-secondary: #8892a8;
+            --text-muted: #5a6378;
+            --accent: #638cff;
+            --accent-soft: rgba(99, 140, 255, 0.12);
+            --accent-glow: rgba(99, 140, 255, 0.25);
+            --success: #3dd68c;
+            --success-bg: rgba(61, 214, 140, 0.1);
+            --warning: #f0b456;
+            --warning-bg: rgba(240, 180, 86, 0.1);
+            --danger: #f06464;
+            --danger-bg: rgba(240, 100, 100, 0.1);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-header {
-    padding: 20px 40px;
-    background: white;
-    border-bottom: 1px solid #e5e7eb;
-    font-weight: 700;
-    font-size: 20px;
-}
+        html {
+            scroll-behavior: smooth;
+        }
 
-.container {
-    display: flex;
-    gap: 30px;
-    padding: 40px;
-    max-width: 1200px;
-    margin: auto;
-}
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-.card {
-    background: white;
-    border-radius: 14px;
-    padding: 25px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
+        /* ===== AMBIENT BACKGROUND ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(ellipse, rgba(99, 140, 255, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-.left { flex: 1; }
-.right { width: 380px; }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -15%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(120, 80, 220, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-h2, h3 { margin-top: 0; }
+        /* ===== HEADER ===== */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(12, 14, 20, 0.8);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--border-subtle);
+        }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-label {
-    font-size: 13px;
-    color: #6b7280;
-}
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
 
-input {
-    width: 100%;
-    padding: 9px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    margin-top: 4px;
-    transition: 0.2s;
-}
+        .header-title {
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
 
-input:focus {
-    outline: none;
-    border-color: #2563eb;
-}
+        .header-badge {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
 
-button {
-    padding: 10px 14px;
-    border: none;
-    border-radius: 8px;
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
+        /* ===== MAIN LAYOUT ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 24px;
+            padding: 32px 40px;
+            max-width: 1260px;
+            margin: auto;
+            align-items: flex-start;
+        }
 
-button:hover {
-    background: #1e40af;
-}
+        /* ===== GLASS CARD ===== */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: var(--transition);
+        }
 
-.result {
-    text-align: center;
-}
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
 
-.risk-circle {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    margin: 20px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    font-weight: 700;
-    color: white;
-    transition: 0.4s;
-}
+        .left {
+            flex: 1;
+            min-width: 0;
+        }
 
-.low { background: #16a34a; }
-.medium { background: #f59e0b; }
-.high { background: #dc2626; }
+        .right {
+            width: 360px;
+            flex-shrink: 0;
+        }
 
-.prob {
-    font-size: 18px;
-    font-weight: 600;
-}
+        /* ===== SECTION HEADERS ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
 
-.note {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 20px;
-}
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--accent-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
 
-thead {
-    background: #f3f4f6;
-}
+        .section-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
 
-th, td {
-    padding: 8px;
-    text-align: left;
-}
+        /* ===== FORM GRID ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
 
-tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-}
+        .form-group {
+            position: relative;
+        }
 
-tbody tr:hover {
-    background: #f9fafb;
-}
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
 
-.load-btn {
-    font-size: 12px;
-    padding: 5px 10px;
-}
-</style>
+        .form-group label .required {
+            color: var(--accent);
+            margin-left: 2px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: 'JetBrains Mono', 'Inter', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-primary);
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+        }
+
+        .form-group input:hover {
+            background: var(--bg-input-focus);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group input:focus {
+            background: var(--bg-input-focus);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .submit-area {
+            margin-top: 24px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 13px 24px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.1px;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), #5470d4);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.08));
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(99, 140, 255, 0.25);
+        }
+
+        .btn-submit:hover::before {
+            opacity: 1;
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit .btn-icon {
+            margin-right: 8px;
+        }
+
+        /* Loading state */
+        .btn-submit.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            border: none;
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 28px 0;
+        }
+
+        /* ===== EXAMPLE TABLE ===== */
+        .examples-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .examples-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .examples-badge {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        th {
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: var(--transition);
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .load-btn {
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            color: var(--accent);
+            background: var(--accent-soft);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.2px;
+        }
+
+        .load-btn:hover {
+            background: rgba(99, 140, 255, 0.2);
+            transform: scale(1.04);
+        }
+
+        /* ===== RESULT PANEL ===== */
+        .result-panel {
+            text-align: center;
+            position: sticky;
+            top: 96px;
+        }
+
+        .result-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        /* Risk Ring */
+        .risk-ring-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 28px;
+        }
+
+        .risk-ring-svg {
+            width: 160px;
+            height: 160px;
+            transform: rotate(-90deg);
+        }
+
+        .risk-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 6;
+        }
+
+        .risk-ring-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 408;
+            stroke-dashoffset: 408;
+            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1),
+                stroke 0.5s ease;
+        }
+
+        .risk-ring-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .risk-ring-value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .risk-ring-unit {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Risk Level Badge */
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .risk-badge.low {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .risk-badge.medium {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .risk-badge.high {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .risk-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Probability Display */
+        .prob-display {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .prob-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Details */
+        .result-details {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Idle state */
+        .result-idle {
+            padding: 40px 0;
+        }
+
+        .result-idle-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 22px;
+            color: var(--text-muted);
+        }
+
+        .result-idle-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 24px 40px;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.2px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .card.left {
+            animation-delay: 0.05s;
+        }
+
+        .card.right {
+            animation-delay: 0.15s;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .right {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 0 20px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-AI Model for Treatment Outcome Prediction
-</header>
+    <header>
+        <div class="header-brand">
+            <div class="header-logo">C</div>
+            <span class="header-title">AI Treatment Outcome Prediction</span>
+        </div>
+        <span class="header-badge">● Model Active</span>
+    </header>
 
-<div class="container">
+    <div class="container">
 
-<div class="card left">
-<h2>Patient Information</h2>
+        <!-- LEFT: FORM CARD -->
+        <div class="card left">
 
-<form id="predictForm">
+            <div class="section-header">
+                <div class="section-icon">🩺</div>
+                <div>
+                    <div class="section-title">Patient Information</div>
+                    <div class="section-subtitle">Enter clinical parameters for risk analysis</div>
+                </div>
+            </div>
 
-<div class="grid">
+            <form id="predictForm">
+                <div class="form-grid">
 
-<div>
-<label>Pregnancies</label>
-<input type="number" id="Pregnancies" placeholder="e.g. 2">
-</div>
+                    <div class="form-group">
+                        <label>Pregnancies</label>
+                        <input type="number" id="Pregnancies" placeholder="e.g. 2">
+                    </div>
 
-<div>
-<label>Glucose (mg/dL)</label>
-<input type="number" id="Glucose" required placeholder="e.g. 120">
-</div>
+                    <div class="form-group">
+                        <label>Glucose (mg/dL) <span class="required">*</span></label>
+                        <input type="number" id="Glucose" required placeholder="e.g. 120">
+                    </div>
 
-<div>
-<label>Blood Pressure</label>
-<input type="number" id="BloodPressure" placeholder="e.g. 70">
-</div>
+                    <div class="form-group">
+                        <label>Blood Pressure (mmHg)</label>
+                        <input type="number" id="BloodPressure" placeholder="e.g. 70">
+                    </div>
 
-<div>
-<label>Skin Thickness</label>
-<input type="number" id="SkinThickness" placeholder="optional">
-</div>
+                    <div class="form-group">
+                        <label>Skin Thickness (mm)</label>
+                        <input type="number" id="SkinThickness" placeholder="optional">
+                    </div>
 
-<div>
-<label>Insulin</label>
-<input type="number" id="Insulin" placeholder="optional">
-</div>
+                    <div class="form-group">
+                        <label>Insulin (μU/mL)</label>
+                        <input type="number" id="Insulin" placeholder="optional">
+                    </div>
 
-<div>
-<label>BMI</label>
-<input type="number" step="0.1" id="BMI" required placeholder="e.g. 28.4">
-</div>
+                    <div class="form-group">
+                        <label>BMI (kg/m²) <span class="required">*</span></label>
+                        <input type="number" step="0.1" id="BMI" required placeholder="e.g. 28.4">
+                    </div>
 
-<div>
-<label>Diabetes Pedigree Function</label>
-<input type="number" step="0.01" id="DiabetesPedigreeFunction" required placeholder="e.g. 0.5">
-</div>
+                    <div class="form-group">
+                        <label>Diabetes Pedigree Function <span class="required">*</span></label>
+                        <input type="number" step="0.01" id="DiabetesPedigreeFunction" required placeholder="e.g. 0.5">
+                    </div>
 
-<div>
-<label>Age</label>
-<input type="number" id="Age" required placeholder="e.g. 35">
-</div>
+                    <div class="form-group">
+                        <label>Age <span class="required">*</span></label>
+                        <input type="number" id="Age" required placeholder="e.g. 35">
+                    </div>
 
-</div>
+                </div>
 
-<div style="margin-top:20px;">
-<button type="submit" style="width:100%;">Analyze Risk</button>
-</div>
+                <div class="submit-area">
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span class="btn-icon">⚡</span> Analyze Risk
+                    </button>
+                </div>
+            </form>
 
-</form>
+            <hr class="divider">
 
-<hr style="margin:30px 0;">
+            <div class="examples-header">
+                <span class="examples-title">Example Patients</span>
+                <span class="examples-badge">Synthetic Data</span>
+            </div>
 
-<h3>Example Patients</h3>
-<p class="note">Synthetic anonymized cases for testing. Click "Load" to populate the form.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Age</th>
+                            <th>Glucose</th>
+                            <th>BMI</th>
+                            <th>BP</th>
+                            <th>DPF</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sampleTableBody"></tbody>
+                </table>
+            </div>
 
-<div style="overflow-x:auto;">
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Age</th>
-<th>Glucose</th>
-<th>BMI</th>
-<th>BP</th>
-<th>DPF</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="sampleTableBody"></tbody>
-</table>
-</div>
+        </div>
 
-</div>
+        <!-- RIGHT: RESULT CARD -->
+        <div class="card right result-panel">
 
-<div class="card right result">
-<h2>Prediction Result</h2>
+            <div class="section-header" style="justify-content: center;">
+                <div>
+                    <div class="section-title" style="text-align:center;">Prediction Result</div>
+                </div>
+            </div>
 
-<div id="riskCircle" class="risk-circle low">--</div>
+            <!-- Idle State -->
+            <div id="resultIdle" class="result-idle">
+                <div class="result-idle-icon">◎</div>
+                <div class="result-idle-text">
+                    Fill in patient data and click<br><strong>Analyze Risk</strong> to see results
+                </div>
+            </div>
 
-<div class="prob" id="probText">
-Probability: --
-</div>
+            <!-- Active Result (hidden initially) -->
+            <div id="resultActive" style="display:none;">
 
-<!--div class="note">
-Educational demo only. Not for medical diagnosis.
-</div-->
+                <div class="risk-ring-container">
+                    <svg class="risk-ring-svg" viewBox="0 0 140 140">
+                        <circle class="risk-ring-bg" cx="70" cy="70" r="65" />
+                        <circle class="risk-ring-progress" id="ringProgress" cx="70" cy="70" r="65" />
+                    </svg>
+                    <div class="risk-ring-label">
+                        <span class="risk-ring-value" id="ringValue">0%</span>
+                        <span class="risk-ring-unit">probability</span>
+                    </div>
+                </div>
 
-</div>
+                <div id="riskBadge" class="risk-badge low">
+                    <span class="risk-badge-dot"></span>
+                    <span id="riskText">LOW RISK</span>
+                </div>
 
-</div>
+                <div class="prob-display">
+                    Confidence: <span class="prob-value" id="probText">—</span>
+                </div>
 
-<script>
-const form = document.getElementById("predictForm");
-const circle = document.getElementById("riskCircle");
-const probText = document.getElementById("probText");
-const tableBody = document.getElementById("sampleTableBody");
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Model</span>
+                        <span class="detail-value">CORA v1.0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Analysis</span>
+                        <span class="detail-value" id="analysisTime">—</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Features</span>
+                        <span class="detail-value">8 inputs</span>
+                    </div>
+                </div>
 
-const samples = [
-{ id:"P-101", Pregnancies:0, Glucose:85,  BloodPressure:70, SkinThickness:20, Insulin:79,  BMI:22.5, DiabetesPedigreeFunction:0.2, Age:25 },
-{ id:"P-102", Pregnancies:1, Glucose:95,  BloodPressure:72, SkinThickness:21, Insulin:85,  BMI:27.4, DiabetesPedigreeFunction:0.3, Age:30 },
-{ id:"P-103", Pregnancies:2, Glucose:110, BloodPressure:75, SkinThickness:23, Insulin:90,  BMI:29.5, DiabetesPedigreeFunction:0.8, Age:35 },
-{ id:"P-104", Pregnancies:3, Glucose:145, BloodPressure:78, SkinThickness:30, Insulin:130, BMI:31.0, DiabetesPedigreeFunction:0.5, Age:42 },
-{ id:"P-105", Pregnancies:4, Glucose:165, BloodPressure:85, SkinThickness:35, Insulin:160, BMI:36.8, DiabetesPedigreeFunction:0.7, Age:50 },
-{ id:"P-106", Pregnancies:5, Glucose:190, BloodPressure:90, SkinThickness:40, Insulin:200, BMI:41.2, DiabetesPedigreeFunction:1.2, Age:58 }
-];
+            </div>
 
-samples.forEach((p, i) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-        <td>${p.id}</td>
+        </div>
+
+    </div>
+
+    <footer>
+        For educational and research purposes only — not intended for clinical diagnosis.
+    </footer>
+
+    <script>
+        const form = document.getElementById("predictForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const tableBody = document.getElementById("sampleTableBody");
+        const resultIdle = document.getElementById("resultIdle");
+        const resultActive = document.getElementById("resultActive");
+        const ringProgress = document.getElementById("ringProgress");
+        const ringValue = document.getElementById("ringValue");
+        const riskBadge = document.getElementById("riskBadge");
+        const riskText = document.getElementById("riskText");
+        const probText = document.getElementById("probText");
+        const analysisTime = document.getElementById("analysisTime");
+
+        const CIRCUMFERENCE = 2 * Math.PI * 65; // ~408.4
+
+        const samples = [
+            { id: "P-101", Pregnancies: 0, Glucose: 85, BloodPressure: 70, SkinThickness: 20, Insulin: 79, BMI: 22.5, DiabetesPedigreeFunction: 0.2, Age: 25 },
+            { id: "P-102", Pregnancies: 1, Glucose: 95, BloodPressure: 72, SkinThickness: 21, Insulin: 85, BMI: 27.4, DiabetesPedigreeFunction: 0.3, Age: 30 },
+            { id: "P-103", Pregnancies: 2, Glucose: 110, BloodPressure: 75, SkinThickness: 23, Insulin: 90, BMI: 29.5, DiabetesPedigreeFunction: 0.8, Age: 35 },
+            { id: "P-104", Pregnancies: 3, Glucose: 145, BloodPressure: 78, SkinThickness: 30, Insulin: 130, BMI: 31.0, DiabetesPedigreeFunction: 0.5, Age: 42 },
+            { id: "P-105", Pregnancies: 4, Glucose: 165, BloodPressure: 85, SkinThickness: 35, Insulin: 160, BMI: 36.8, DiabetesPedigreeFunction: 0.7, Age: 50 },
+            { id: "P-106", Pregnancies: 5, Glucose: 190, BloodPressure: 90, SkinThickness: 40, Insulin: 200, BMI: 41.2, DiabetesPedigreeFunction: 1.2, Age: 58 }
+        ];
+
+        // Populate sample table
+        samples.forEach((p, i) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+        <td style="color:var(--text-primary); font-weight:500;">${p.id}</td>
         <td>${p.Age}</td>
         <td>${p.Glucose}</td>
         <td>${p.BMI}</td>
@@ -280,56 +889,105 @@ samples.forEach((p, i) => {
         <td>${p.DiabetesPedigreeFunction}</td>
         <td><button class="load-btn" onclick="loadPatient(${i})">Load</button></td>
     `;
-    tableBody.appendChild(row);
-});
+            tableBody.appendChild(row);
+        });
 
-function loadPatient(i){
-    const p = samples[i];
-    for(const key in p){
-        if(document.getElementById(key)){
-            document.getElementById(key).value = p[key];
+        function loadPatient(i) {
+            const p = samples[i];
+            for (const key in p) {
+                const el = document.getElementById(key);
+                if (el) {
+                    el.value = p[key];
+                    // Trigger a subtle flash on the input
+                    el.style.borderColor = 'var(--accent)';
+                    el.style.boxShadow = '0 0 0 3px var(--accent-soft)';
+                    setTimeout(() => {
+                        el.style.borderColor = '';
+                        el.style.boxShadow = '';
+                    }, 600);
+                }
+            }
         }
-    }
-}
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+        function setRing(percent) {
+            const offset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
+            ringProgress.style.strokeDasharray = CIRCUMFERENCE;
+            ringProgress.style.strokeDashoffset = offset;
+        }
 
-    const features = {
-        Pregnancies: Number(Pregnancies.value || 0),
-        Glucose: Number(Glucose.value),
-        BloodPressure: Number(BloodPressure.value || 0),
-        SkinThickness: Number(SkinThickness.value || 0),
-        Insulin: Number(Insulin.value || 0),
-        BMI: Number(BMI.value),
-        DiabetesPedigreeFunction: Number(DiabetesPedigreeFunction.value),
-        Age: Number(Age.value)
-    };
+        function setRiskColor(prob) {
+            riskBadge.classList.remove('low', 'medium', 'high');
 
-    const res = await fetch("/predict", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({features})
-    });
+            if (prob < 40) {
+                riskBadge.classList.add('low');
+                riskText.textContent = 'LOW RISK';
+                ringProgress.style.stroke = 'var(--success)';
+                ringValue.style.color = 'var(--success)';
+            } else if (prob < 70) {
+                riskBadge.classList.add('medium');
+                riskText.textContent = 'MODERATE RISK';
+                ringProgress.style.stroke = 'var(--warning)';
+                ringValue.style.color = 'var(--warning)';
+            } else {
+                riskBadge.classList.add('high');
+                riskText.textContent = 'HIGH RISK';
+                ringProgress.style.stroke = 'var(--danger)';
+                ringValue.style.color = 'var(--danger)';
+            }
+        }
 
-    const data = await res.json();
-    const prob = data.probability ? (data.probability * 100).toFixed(2) : 0;
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-    probText.innerText = "Probability: " + prob + "%";
-    circle.classList.remove("low","medium","high");
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Analyzing...';
 
-    if(prob < 40){
-        circle.classList.add("low");
-        circle.innerText = "LOW";
-    } else if(prob < 70){
-        circle.classList.add("medium");
-        circle.innerText = "MEDIUM";
-    } else {
-        circle.classList.add("high");
-        circle.innerText = "HIGH";
-    }
-});
-</script>
+            const startTime = performance.now();
+
+            const features = {
+                Pregnancies: Number(Pregnancies.value || 0),
+                Glucose: Number(Glucose.value),
+                BloodPressure: Number(BloodPressure.value || 0),
+                SkinThickness: Number(SkinThickness.value || 0),
+                Insulin: Number(Insulin.value || 0),
+                BMI: Number(BMI.value),
+                DiabetesPedigreeFunction: Number(DiabetesPedigreeFunction.value),
+                Age: Number(Age.value)
+            };
+
+            try {
+                const res = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ features })
+                });
+
+                const data = await res.json();
+                const prob = data.probability ? (data.probability * 100).toFixed(1) : 0;
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+
+                // Show result
+                resultIdle.style.display = 'none';
+                resultActive.style.display = 'block';
+
+                // Animate ring
+                setRing(parseFloat(prob));
+                ringValue.textContent = prob + '%';
+                setRiskColor(parseFloat(prob));
+
+                // Update details
+                probText.textContent = prob + '%';
+                analysisTime.textContent = elapsed + 's';
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = '<span class="btn-icon">⚡</span> Analyze Risk';
+            }
+        });
+    </script>
 
 </body>
+
 </html>
